@@ -9,15 +9,14 @@ window.KEBIAO = {
   courses: [
     { name: "客户关系管理",       teacher: "曲金艺", room: "208", day: 1, start: 3, end: 4, weeks: "all" },
     { name: "物流运输组织与管理", teacher: "徐驰",   room: "307", day: 1, start: 7, end: 8, weeks: "all" },
-    { name: "创业基础",           teacher: "程欢",   room: "",    day: 1, start: 9, end: 9, weeks: "all" },
 
     { name: "采购管理与库存控制", teacher: "张亚强", room: "207", day: 2, start: 1, end: 2, weeks: "all" },
     { name: "物流市场营销",       teacher: "程巳益", room: "207", day: 2, start: 3, end: 4, weeks: "all" },
     { name: "物流项目管理",       teacher: "程巳益", room: "206", day: 2, start: 5, end: 6, weeks: "all" },
 
-    { name: "客户关系管理",       teacher: "曲金艺", room: "209", day: 3, start: 3, end: 4, weeks: "even" },
-    { name: "采购管理与库存控制", teacher: "张亚强", room: "207", day: 3, start: 5, end: 6, weeks: "even" },
-    { name: "物流运输组织与管理", teacher: "徐驰",   room: "103", day: 3, start: 7, end: 8, weeks: "all" },
+    { name: "客户关系管理",       teacher: "曲金艺", room: "执闳楼209", day: 3, start: 3, end: 4, weeks: "even" },
+    { name: "采购管理与库存控制", teacher: "张亚强", room: "执闳楼207", day: 3, start: 5, end: 6, weeks: "even" },
+    { name: "物流运输组织与管理", teacher: "徐驰",   room: "执闳楼103", day: 3, start: 7, end: 8, weeks: "all" },
     { name: "物流系统规划与设计", teacher: "田丹梅", room: "执阅楼407", day: 3, start: 9, end: 10, weeks: "all" },
 
     { name: "学术论文写作与发表", teacher: "苏晓洲", room: "303", day: 4, start: 3, end: 4, weeks: "all" },
@@ -30,6 +29,7 @@ window.KEBIAO = {
   // 作业：复制一行改内容即可。due 用 "YYYY-MM-DD" 或 "YYYY-MM-DD HH:mm"（北京时间）
   // id 要唯一，页面勾选“完成”会按 id 存在本机 localStorage；done:true 表示默认已完成
   homework: [
-    // { id: "hw1", course: "物流系统规划与设计", content: "第四章作业", due: "2026-10-30 23:59", done: false },
+    { id: "hw-crm-video-20261025", course: "客户关系管理", content: "交客户关系管理视频", due: "2026-10-25 23:59", done: false },
+    { id: "hw-ups-ppt-20261119", course: "学术论文写作与发表", content: "论文小组PPT汇报（UPS）", due: "2026-11-19 23:59", done: false },
   ]
 };
