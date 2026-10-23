@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>课表 · 作业</title>
+<meta name="theme-color" content="#3056d3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="课表">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--p:#3056d3;--bg:#f4f6fb;--card:#fff;--t:#1d2433;--m:#6b7385;--hl:#fff4d6}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t)}
+header{background:var(--p);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 22px;border-radius:0 0 20px 20px}
+header h1{margin:0;font-size:22px}header .sub{opacity:.9;margin-top:6px;font-size:14px}
+.badge{display:inline-block;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px;margin-right:6px}
+main{padding:14px;max-width:640px;margin:auto}
+nav{display:flex;gap:8px;margin:-6px 0 12px}nav button{flex:1;padding:10px;border:0;border-radius:12px;background:#e3e8f6;color:var(--p);font-size:15px}
+nav button.on{background:var(--p);color:#fff}
+.card{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.cls{display:flex;gap:12px;align-items:flex-start}.time{min-width:58px;font-weight:600;color:var(--p)}
+.time small{display:block;color:var(--m);font-weight:400}.name{font-weight:600}.meta{color:var(--m);font-size:13px;margin-top:3px}
+.next{background:var(--hl);border-left:4px solid #f0a500}.past{opacity:.5}.now{border-left:4px solid #2bb673}
+.tag{font-size:12px;padding:1px 6px;border-radius:6px;background:#eef1fa;color:var(--p);margin-left:4px}
+.empty{color:var(--m);text-align:center;padding:20px}
+.wk{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.wk button{border:0;background:#e3e8f6;color:var(--p);border-radius:10px;padding:8px 14px;font-size:16px}
+.day h3{margin:14px 0 6px;font-size:15px}.day h3.today{color:var(--p)}
+.hw{display:flex;gap:10px;align-items:center}.hw input{width:22px;height:22px}.hw.done .name{text-decoration:line-through;color:var(--m)}
+.cd{margin-left:auto;font-size:13px;white-space:nowrap}.late{color:#d33}.soon{color:#e07b00}
+footer{color:var(--m);font-size:12px;text-align:center;padding:16px}
+</style>
+</head>
+<body>
+<header><h1 id="title">课表</h1><div class="sub" id="sub"></div></header>
+<main>
+<nav><button data-v="today" class="on">今天</button><button data-v="week">整周</button><button data-v="hw">作业</button></nav>
+<section id="today"></section>
+<section id="week" hidden></section>
+<section id="hw" hidden></section>
+</main>
+<footer>时间按北京时间（Asia/Shanghai）计算 · 数据见 data.js</footer>
+<script src="data.js"></script>
+<script>
+(function(){
+const D=window.KEBIAO, WD=["","周一","周二","周三","周四","周五","周六","周日"];
+const END={2:"10:10",4:"12:10",6:"15:40",8:"17:20"};
+const q=new URLSearchParams(location.search);
+// 北京时间“墙上时间”：用 UTC 字段表示
+function bjNow(){const t=q.get("now")?Date.parse(q.get("now")):Date.now();return new Date(t+8*3600e3);}
+const now=bjNow();
+const dayMs=864e5, w1=Date.parse(D.week1Monday+"T00:00:00Z");
+const todayMid=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate());
+const curWeek=Math.floor((todayMid-w1)/dayMs/7)+1;
+const wday=now.getUTCDay()||7, nowMin=now.getUTCHours()*60+now.getUTCMinutes();
+const parity=w=>w%2?"单周":"双周";
+const toMin=s=>{const[a,b]=s.split(":");return a*60+ +b};
+const startT=c=>D.periodStart[c.start]||"", endT=c=>END[c.end]||"";
+function inWeek(c,w){if(w<1)return false;if(c.maxWeek&&w>c.maxWeek)return false;if(c.weeks==="odd")return w%2===1;if(c.weeks==="even")return w%2===0;return true;}
+function list(w,d){return D.courses.filter(c=>c.day===d&&inWeek(c,w)).sort((a,b)=>a.start-b.start);}
+function esc(s){return String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));}
+function row(c,cls){const e=endT(c);return `<div class="card cls ${cls||""}"><div class="time">${startT(c)}<small>${e?"–"+e:"起"}</small></div><div><div class="name">${esc(c.name)}${c.weeks!=="all"?`<span class="tag">${c.weeks==="odd"?"单周":"双周"}</span>`:""}</div><div class="meta">第${c.start}${c.end>c.start?"–"+c.end:""}节 · ${esc(c.teacher||"老师未记录")} · ${esc(c.room||"教室未记录")}</div></div></div>`;}
+document.getElementById("title").textContent=`${now.getUTCMonth()+1}月${now.getUTCDate()}日 ${WD[wday]}`;
+document.getElementById("sub").innerHTML=curWeek>=1?`<span class="badge">第 ${curWeek} 周</span><span class="badge">${parity(curWeek)}</span>`:`<span class="badge">还没开学</span>`;
+// 今天 + 下一节
+function nextClass(){for(let k=0;k<14;k++){const t=todayMid+k*dayMs,dd=new Date(t),w=Math.floor((t-w1)/dayMs/7)+1,d=dd.getUTCDay()||7;for(const c of list(w,d)){if(k>0||toMin(startT(c))>nowMin)return{c,k,d,dd};}}return null;}
+const nx=nextClass();
+let h="";const tl=list(curWeek,wday);
+if(!tl.length)h+=`<div class="card empty">今天没有课 🎉</div>`;
+for(const c of tl){const s=toMin(startT(c)),e=endT(c)?toMin(endT(c)):s+100;let cls="";
+ if(nowMin>=s&&nowMin<e)cls="now";else if(nowMin>=e)cls="past";if(nx&&nx.k===0&&nx.c===c)cls="next";h+=row(c,cls);}
+if(nx){const m=nx.k===0?`今天 ${startT(nx.c)}`:`${nx.k===1?"明天":(nx.dd.getUTCMonth()+1)+"月"+nx.dd.getUTCDate()+"日"} ${WD[nx.d]} ${startT(nx.c)}`;
+ h=`<div class="card next"><div class="meta">下一节课</div><div class="name" style="font-size:17px;margin-top:4px">${esc(nx.c.name)}</div><div class="meta">${m} · ${esc(nx.c.room||"教室未记录")} · ${esc(nx.c.teacher)}</div></div>`+h;}
+document.getElementById("today").innerHTML=h;
+// 整周
+let vw=Math.max(1,curWeek);
+function renderWeek(){let s=`<div class="wk"><button id="pw">‹</button><b>第 ${vw} 周（${parity(vw)}）${vw===curWeek?" · 本周":""}</b><button id="nw">›</button></div>`;
+ for(let d=1;d<=7;d++){const l=list(vw,d);if(!l.length&&d>5)continue;const dt=new Date(w1+((vw-1)*7+d-1)*dayMs);
+  s+=`<div class="day"><h3 class="${vw===curWeek&&d===wday?"today":""}">${WD[d]} ${dt.getUTCMonth()+1}/${dt.getUTCDate()}</h3>${l.length?l.map(c=>row(c)).join(""):`<div class="card empty">无课</div>`}</div>`;}
+ const el=document.getElementById("week");el.innerHTML=s;
+ el.querySelector("#pw").onclick=()=>{if(vw>1){vw--;renderWeek();}};el.querySelector("#nw").onclick=()=>{if(vw<(D.totalWeeks||20)){vw++;renderWeek();}};}
+renderWeek();
+// 作业
+const KEY="kebiao-hw-done";let st={};try{st=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+function dueMs(s){return Date.parse(s.replace(" ","T")+(s.length>10?":00":"T23:59:00")+"+08:00");}
+function renderHw(){const items=(D.homework||[]).map(x=>({...x,isDone:x.id in st?st[x.id]:!!x.done})).sort((a,b)=>(a.isDone-b.isDone)||(dueMs(a.due)-dueMs(b.due)));
+ const el=document.getElementById("hw");if(!items.length){el.innerHTML=`<div class="card empty">暂无作业<br><small>在 data.js 的 homework 里添加</small></div>`;return;}
+ const tnow=now.getTime()-8*3600e3;
+ el.innerHTML=items.map(x=>{const diff=dueMs(x.due)-tnow,dd=Math.floor(Math.abs(diff)/dayMs),hh=Math.floor(Math.abs(diff)%dayMs/36e5);
+  const cd=x.isDone?"已完成":diff<0?`<span class="late">已逾期 ${dd}天${hh}时</span>`:`<span class="${diff<2*dayMs?"soon":""}">剩 ${dd}天${hh}时</span>`;
+  return `<label class="card hw ${x.isDone?"done":""}"><input type="checkbox" data-id="${esc(x.id)}" ${x.isDone?"checked":""}><div><div class="name">${esc(x.content)}</div><div class="meta">${esc(x.course)} · 截止 ${esc(x.due)}</div></div><div class="cd">${cd}</div></label>`;}).join("");
+ el.querySelectorAll("input").forEach(i=>i.onchange=()=>{st[i.dataset.id]=i.checked;localStorage.setItem(KEY,JSON.stringify(st));renderHw();});}
+renderHw();
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));["today","week","hw"].forEach(id=>document.getElementById(id).hidden=id!==b.dataset.v);});
+window.__KEBIAO_STATE={curWeek,parity:parity(curWeek)};
+})();
+</script>
+</body>
+</html>
